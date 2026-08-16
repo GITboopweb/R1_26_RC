@@ -3,7 +3,7 @@
 
 imu_t imu_data = {0};
 
-// »ù´¡ SPI ÊÕ·¢Ò»¸ö×Ö½Ú
+// SPIå•å­—èŠ‚æ”¶å‘åº•å±‚å‡½æ•°
 static uint8_t SPI_TransmitReceive(uint8_t tx_data)
 {
     uint8_t rx_data;
@@ -11,100 +11,100 @@ static uint8_t SPI_TransmitReceive(uint8_t tx_data)
     return rx_data;
 }
 
-// ¶Á¼Ä´æÆ÷£¨CS ÓÉµ÷ÓÃÕß¿ØÖÆ£©
+// è¯»å–BMI088æŒ‡å®šå¯„å­˜å™¨
 static uint8_t BMI088_ReadReg(uint8_t reg, uint8_t cs_pin)
 {
     uint8_t data;
     if (cs_pin == 0) BMI088_ACCEL_CS_L();
     else BMI088_GYRO_CS_L();
 
-    SPI_TransmitReceive(reg | 0x80); // ·¢ËÍ¶ÁµØÖ·£¬ºöÂÔ·µ»ØµÄÎŞĞ§×Ö½Ú
-    data = SPI_TransmitReceive(0xFF); // ·¢ËÍ0xFF£¬Í¬Ê±¶ÁÈ¡ÓĞĞ§Êı¾İ
+    SPI_TransmitReceive(reg | 0x80); // å¯„å­˜å™¨åœ°å€æœ€é«˜ä½ç½®1ï¼Œä»£è¡¨è¯»æ“ä½œ
+    data = SPI_TransmitReceive(0xFF); // å‘é€0xFFï¼ŒåŒæ—¶æ¥æ”¶å¯„å­˜å™¨è¿”å›æ•°æ®
 
     if (cs_pin == 0) BMI088_ACCEL_CS_H();
     else BMI088_GYRO_CS_H();
     return data;
 }
 
-// Ğ´¼Ä´æÆ÷
+// å†™å…¥BMI088æŒ‡å®šå¯„å­˜å™¨
 static void BMI088_WriteReg(uint8_t reg, uint8_t data, uint8_t cs_pin)
 {
     if (cs_pin == 0) BMI088_ACCEL_CS_L();
     else BMI088_GYRO_CS_L();
 
-    SPI_TransmitReceive(reg & 0x7F); // ·¢ËÍĞ´µØÖ·
-    SPI_TransmitReceive(data);       // ·¢ËÍÊı¾İ
+    SPI_TransmitReceive(reg & 0x7F); // å¯„å­˜å™¨åœ°å€æœ€é«˜ä½ç½®0ï¼Œä»£è¡¨å†™æ“ä½œ
+    SPI_TransmitReceive(data);       // å†™å…¥ç›®æ ‡å¯„å­˜å™¨æ•°æ®
 
     if (cs_pin == 0) BMI088_ACCEL_CS_H();
     else BMI088_GYRO_CS_H();
 }
 
 /**
- * @brief  ³õÊ¼»¯¼ÓËÙ¶È¼Æ
- * @retval 0: ³É¹¦, 1: Ê§°Ü
+ * @brief åŠ é€Ÿåº¦ä¼ æ„Ÿå™¨åˆå§‹åŒ–
+ * @retval 0:åˆå§‹åŒ–æˆåŠŸ, 1:åˆå§‹åŒ–å¤±è´¥
  */
 static uint8_t BMI088_AccelInit(void)
 {
     uint8_t id = 0;
-/* bmi088¼ÓËÙ¶È¼ÆÉÏµçÄ¬ÈÏÊÇ I2C Ä£Ê½,Í¨¹ıÒ»´Î Dummy Read ÇĞ»»ÖÁ SPI Ä£Ê½ */
+/* BMI088åŠ é€Ÿåº¦èŠ¯ç‰‡é»˜è®¤ä¸Šç”µä¸ºI2Cæ¨¡å¼ï¼Œéœ€è¦ä¸€æ¬¡è™šæ‹Ÿè¯»æ“ä½œåˆ‡æ¢ä¸ºSPIæ¨¡å¼ */
     BMI088_ReadReg(BMI088_ACCEL_CHIP_ID, 0); 
     HAL_Delay(1);
 
-    /* ¶ÁÈ¡¼ÓËÙ¶È¼ÆID£¬ÑéÖ¤Í¨ĞÅ */
+    /* è¯»å–åŠ é€Ÿåº¦èŠ¯ç‰‡IDï¼Œæ ¡éªŒé€šè®¯æ˜¯å¦æ­£å¸¸ */
     id = BMI088_ReadReg(BMI088_ACCEL_CHIP_ID, 0);
     if (id != BMI088_ACCEL_CHIP_ID_VALUE) {
         return 1;
     }
 
-    /* Èí¸´Î»¼ÓËÙ¶È¼Æ */
+    /* æ‰§è¡ŒåŠ é€Ÿåº¦ä¼ æ„Ÿå™¨è½¯ä»¶å¤ä½ */
     BMI088_WriteReg(BMI088_ACCEL_SOFTRESET, 0xB6, 0);
-    HAL_Delay(50); // ¸´Î»ºóĞèÒªµÈ´ı 
+    HAL_Delay(50); // å¤ä½æ“ä½œéœ€è¦ç­‰å¾…ç¨³å®š 
 
-    /* ÅäÖÃ¼ÓËÙ¶È¼ÆÎªÕı³£Ä£Ê½ */
-    BMI088_WriteReg(BMI088_ACCEL_PWR_CTRL, 0x04, 0); // 0x04 Ê¹ÄÜ¼ÓËÙ¶È¼Æ
-    HAL_Delay(5); // µÈ´ıÄ£Ê½ÇĞ»» 
+    /* é…ç½®åŠ é€Ÿåº¦ä¼ æ„Ÿå™¨ä¸ºå·¥ä½œæ¨¡å¼ */
+    BMI088_WriteReg(BMI088_ACCEL_PWR_CTRL, 0x04, 0); // 0x04 ä½¿èƒ½åŠ é€Ÿåº¦ä¼ æ„Ÿå™¨
+    HAL_Delay(5); // ç­‰å¾…æ¨¡å¼åˆ‡æ¢å®Œæˆ 
 
-    /*ÅäÖÃ¼ÓËÙ¶È¼ÆÁ¿³ÌºÍ´ø¿í */
-    BMI088_WriteReg(BMI088_ACCEL_RANGE, 0x00, 0); // 0x00 = ¡À3g
-    BMI088_WriteReg(BMI088_ACCEL_CONF, 0x0A, 0);  // 0x0A = 100Hz, Õı³£Ä£Ê½
+    /*é…ç½®åŠ é€Ÿåº¦é‡ç¨‹ä¸è¾“å‡ºé¢‘ç‡*/
+    BMI088_WriteReg(BMI088_ACCEL_RANGE, 0x00, 0); // 0x00 = Â±3gé‡ç¨‹
+    BMI088_WriteReg(BMI088_ACCEL_CONF, 0x0A, 0);  // 0x0A = 100Hzè¾“å‡ºï¼Œæ™®é€šæ»¤æ³¢æ¨¡å¼
 
     HAL_Delay(10);
     return 0;
 }
 
 /**
- * @brief  ³õÊ¼»¯ÍÓÂİÒÇ
- * @retval 0: ³É¹¦, 1: Ê§°Ü
+ * @brief é™€èºä»ªä¼ æ„Ÿå™¨åˆå§‹åŒ–
+ * @retval 0:åˆå§‹åŒ–æˆåŠŸ, 1:åˆå§‹åŒ–å¤±è´¥
  */
 static uint8_t BMI088_GyroInit(void)
 {
     uint8_t id = 0;
     
     
-    /* ¶ÁÈ¡ÍÓÂİÒÇID£¬ÑéÖ¤Í¨ĞÅ */
+    /* è¯»å–é™€èºä»ªèŠ¯ç‰‡IDï¼Œæ ¡éªŒé€šè®¯æ˜¯å¦æ­£å¸¸ */
     id = BMI088_ReadReg(BMI088_GYRO_CHIP_ID, 1);
     if (id != BMI088_GYRO_CHIP_ID_VALUE) {
         return 1;
     }
 
-    /*  Èí¸´Î»ÍÓÂİÒÇ */
+    /* æ‰§è¡Œé™€èºä»ªè½¯ä»¶å¤ä½ */
     BMI088_WriteReg(BMI088_GYRO_SOFTRESET, 0xB6, 1);
     HAL_Delay(20);
 
-    /* ÅäÖÃÍÓÂİÒÇÎªÕı³£Ä£Ê½ */
-    BMI088_WriteReg(BMI088_GYRO_LPM1, 0x00, 1); // Õı³£Ä£Ê½
+    /* è®¾ç½®é™€èºä»ªä¸ºæ­£å¸¸å·¥ä½œæ¨¡å¼ */
+    BMI088_WriteReg(BMI088_GYRO_LPM1, 0x00, 1); // æ­£å¸¸å·¥ä½œæ¨¡å¼ï¼Œéä½åŠŸè€—
 
-    /*  ÅäÖÃÍÓÂİÒÇ´ø¿íºÍÁ¿³Ì */
-    BMI088_WriteReg(BMI088_GYRO_RANGE, 0x00, 1);      // 0x00 = ¡À2000¡ã/s
-    BMI088_WriteReg(BMI088_GYRO_BANDWIDTH, 0x02, 1);  // 0x02 = 116Hz
+    /* é…ç½®é™€èºä»ªé‡ç¨‹ä¸è¾“å‡ºå¸¦å®½ */
+    BMI088_WriteReg(BMI088_GYRO_RANGE, 0x00, 1);      // 0x00 = Â±2000Â°/sé‡ç¨‹
+    BMI088_WriteReg(BMI088_GYRO_BANDWIDTH, 0x02, 1);  // 0x02 = 116Hzè¾“å‡ºå¸¦å®½
 
     HAL_Delay(10);
     return 0;
 }
 
 /**
- * @brief  BMI088 ×Ü³õÊ¼»¯º¯Êı
- * @retval 0: ³É¹¦, 1: Ê§°Ü
+ * @brief BMI088æ•´ä½“åˆå§‹åŒ–å…¥å£å‡½æ•°
+ * @retval 0:åˆå§‹åŒ–æˆåŠŸ, 1:åˆå§‹åŒ–å¤±è´¥
  */
 uint8_t BMI088_Init(void)
 {
@@ -114,8 +114,8 @@ uint8_t BMI088_Init(void)
 }
 
 /**
- * @brief  ¶ÁÈ¡ÍÓÂİÒÇÈıÖáÊı¾İ
- * @param  gyro: ÓÃÓÚ´æ´¢ÍÓÂİÒÇÊı¾İµÄ¸¡µãÊı×é£¨µ¥Î»£º¡ã/s£©
+ * @brief è¯»å–ä¸‰è½´é™€èºä»ªåŸå§‹æ•°æ®å¹¶è½¬æ¢ä¸ºç‰©ç†é‡
+ * @param  gyro: æµ®ç‚¹æ•°ç»„ï¼Œå­˜å‚¨ä¸‰è½´è§’é€Ÿåº¦ï¼Œå•ä½ï¼šåº¦/ç§’
  */
 void BMI088_GyroRead(float gyro[3])
 {
@@ -124,26 +124,26 @@ void BMI088_GyroRead(float gyro[3])
 
     BMI088_GYRO_CS_L();
 
-    /* ·¢ËÍÍÓÂİÒÇÊı¾İÆğÊ¼µØÖ· (0x02)£¬²¢¶ÁÈ¡6×Ö½ÚÊı¾İ */
-    HAL_SPI_Transmit(&BMI088_SPI, (uint8_t*)"\x82", 1,10); // µØÖ·0x02 | 0x80
+    /* å‘é€é™€èºä»ªæ•°æ®èµ·å§‹å¯„å­˜å™¨åœ°å€(0x02)ï¼Œè¿ç»­è¯»å–6å­—èŠ‚ä¸‰è½´æ•°æ® */
+    HAL_SPI_Transmit(&BMI088_SPI, (uint8_t*)"\x82", 1,10); // è¯»åœ°å€0x02 | 0x80è¯»æ ‡å¿—ä½
     HAL_SPI_Receive(&BMI088_SPI, buf, 6, 10);
 
     BMI088_GYRO_CS_H();
 
-    /* Êı¾İÆ´½Ó (BMI088 Êı¾İÎªĞ¡¶Ë¸ñÊ½) */
+    /* æ‹¼æ¥16ä½åŸå§‹æ•°æ® (BMI088æ•°æ®æ ¼å¼ä¸ºå°ç«¯æ¨¡å¼) */
     raw[0] = (int16_t)((buf[1] << 8) | buf[0]);
     raw[1] = (int16_t)((buf[3] << 8) | buf[2]);
     raw[2] = (int16_t)((buf[5] << 8) | buf[4]);
 
-    /* ×ª»»ÎªÊµ¼ÊÖµ£¬¸ù¾İÁ¿³Ì(¡À2000¡ã/s)ºÍ16Î»·Ö±æÂÊ¼ÆËã¡£ 2000 / 32768 = 0.061035 */
+    /* è½¬æ¢ä¸ºå®é™…è§’é€Ÿåº¦ç‰©ç†é‡(Â±2000Â°/s)ï¼Œ16ä½æ»¡é‡ç¨‹æ¢ç®—ç³»æ•°ï¼š2000 / 32768 = 0.061035 */
     gyro[0] = raw[0] * 0.061035f;
     gyro[1] = raw[1] * 0.061035f;
     gyro[2] = raw[2] * 0.061035f;
 }
 
 /**
- * @brief  ¶ÁÈ¡¼ÓËÙ¶È¼ÆÈıÖáÊı¾İ
- * @param  accel: ÓÃÓÚ´æ´¢¼ÓËÙ¶È¼ÆÊı¾İµÄ¸¡µãÊı×é£¨µ¥Î»£ºg£©
+ * @brief è¯»å–ä¸‰è½´åŠ é€Ÿåº¦åŸå§‹æ•°æ®å¹¶è½¬æ¢ä¸ºç‰©ç†é‡
+ * @param  accel: æµ®ç‚¹æ•°ç»„ï¼Œå­˜å‚¨ä¸‰è½´åŠ é€Ÿåº¦ï¼Œå•ä½ï¼šg
  */
 void BMI088_AccelRead(float accel[3])
 {
@@ -152,19 +152,19 @@ void BMI088_AccelRead(float accel[3])
 
     BMI088_ACCEL_CS_L();
 
-    /* ·¢ËÍ¼ÓËÙ¶È¼ÆÊı¾İÆğÊ¼µØÖ· (0x12)£¬²¢¶ÁÈ¡6×Ö½ÚÊı¾İ */
-    HAL_SPI_Transmit(&BMI088_SPI, (uint8_t*)"\x92", 1,10); // µØÖ·0x12 | 0x80
+    /* å‘é€åŠ é€Ÿåº¦æ•°æ®èµ·å§‹å¯„å­˜å™¨åœ°å€(0x12)ï¼Œè¿ç»­è¯»å–6å­—èŠ‚ä¸‰è½´æ•°æ® */
+    HAL_SPI_Transmit(&BMI088_SPI, (uint8_t*)"\x92", 1,10); // è¯»åœ°å€0x12 | 0x80è¯»æ ‡å¿—ä½
     HAL_SPI_Receive(&BMI088_SPI, buf, 7, 10);
 
     BMI088_ACCEL_CS_H();
 
-    /* Êı¾İÆ´½Ó */
+    /* æ‹¼æ¥16ä½åŸå§‹æ•°æ® */
     raw[0] = (int16_t)((buf[2] << 8) | buf[1]);
     raw[1] = (int16_t)((buf[4] << 8) | buf[3]);
     raw[2] = (int16_t)((buf[6] << 8) | buf[5]);
 
 
-    /* ×ª»»ÎªÊµ¼ÊÖµ£¬¸ù¾İÁ¿³Ì(¡À3g)ºÍ16Î»·Ö±æÂÊ¼ÆËã¡£ 3 / 32768 = 0.000091552 */
+    /* è½¬æ¢ä¸ºå®é™…åŠ é€Ÿåº¦ç‰©ç†é‡(Â±3g)ï¼Œ16ä½æ»¡é‡ç¨‹æ¢ç®—ç³»æ•°ï¼š3 / 32768 = 0.000091552 */
     accel[0] = raw[0] * 0.000091552f;
     accel[1] = raw[1] * 0.000091552f;
     accel[2] = raw[2] * 0.000091552f;
@@ -172,41 +172,41 @@ void BMI088_AccelRead(float accel[3])
 }
 
 ///**
-// * @brief  ¶ÁÈ¡ÍÓÂİÒÇÎÂ¶È£¨µ¥Î»£º¡æ£©
-// * @retval ÎÂ¶ÈÖµ£¨ÉãÊÏ¶È£©
+// * @brief è¯»å–èŠ¯ç‰‡å†…éƒ¨æ¸©åº¦ï¼Œå•ä½æ‘„æ°åº¦
+// * @retval æ¸©åº¦æµ®ç‚¹å€¼ï¼Œå•ä½â„ƒ
 // */
 // float BMI088_ReadTemperature(void)
 //{
 //    uint8_t temp_l, temp_h;
 //    int16_t temp_raw;
 
-//    /* ¶ÁµÍ×Ö½Ú (µØÖ· 0x20) */
-//    temp_l = BMI088_ReadReg(BMI088_GYRO_TEMP_X_L, 1);  // 1 = ÍÓÂİÒÇÆ¬Ñ¡
-//    /* ¶Á¸ß×Ö½Ú (µØÖ· 0x21) */
+//    /* è¯»å–ä½å­—èŠ‚ (å¯„å­˜å™¨åœ°å€ 0x20) */
+//    temp_l = BMI088_ReadReg(BMI088_GYRO_TEMP_X_L, 1);  // 1 = é™€èºä»ªç‰‡é€‰
+//    /* è¯»å–é«˜å­—èŠ‚ (å¯„å­˜å™¨åœ°å€ 0x21) */
 //    temp_h = BMI088_ReadReg(BMI088_GYRO_TEMP_X_H, 1);
 
-//    /* Ğ¡¶ËÆ´½Ó£ºµÍ×Ö½ÚÔÚÇ°£¬¸ß×Ö½ÚÔÚºó */
+//    /* å°ç«¯æ‹¼æ¥ï¼Œé«˜å­—èŠ‚å·¦ç§»åæˆ–ä¸Šä½å­—èŠ‚ */
 //    temp_raw = (int16_t)((temp_h << 8) | temp_l);
 
-//    /* BMI088 Êı¾İÊÖ²á£ºÎÂ¶È(¡æ) = temp_raw * 0.01 + 23.0 */
+//    /* BMI088æ¸©åº¦æ¢ç®—å…¬å¼(æ‘„æ°åº¦) = åŸå§‹å€¼ * 0.01 + 23.0 */
 //    return (float)temp_raw * 0.01f + 23.0f;
 //}
 
 /**
- * @brief  ´ÓÖ¸¶¨¼Ä´æÆ÷¶ÁÈ¡¶à¸ö×Ö½Ú
- * @param  reg:     ÆğÊ¼¼Ä´æÆ÷µØÖ·
- * @param  buf:     Êı¾İ»º´æÇø
- * @param  len:     ¶ÁÈ¡×Ö½ÚÊı
- * @param  cs_pin:  Æ¬Ñ¡Òı½Å (0: ¼ÓËÙ¶È¼Æ, 1: ÍÓÂİÒÇ)
+ * @brief æ‰¹é‡è¯»å–è¿ç»­å¯„å­˜å™¨æ•°æ®
+ * @param  reg:     è¯»å–èµ·å§‹å¯„å­˜å™¨åœ°å€
+ * @param  buf:     æ•°æ®å­˜å‚¨ç¼“å†²åŒºæŒ‡é’ˆ
+ * @param  len:     éœ€è¦è¯»å–çš„å­—èŠ‚é•¿åº¦
+ * @param  cs_pin:  ç‰‡é€‰é€šé“ (0: åŠ é€Ÿåº¦èŠ¯ç‰‡, 1: é™€èºä»ªèŠ¯ç‰‡)
  */
 static void BMI088_ReadRegs(uint8_t reg, uint8_t *buf, uint8_t len, uint8_t cs_pin)
 {
     if (cs_pin == 0) BMI088_ACCEL_CS_L();
     else BMI088_GYRO_CS_L();
 
-    /* ·¢ËÍ¶ÁµØÖ·£¨×î¸ßÎ»1£© */
+    /* å‘é€è¯»å¯„å­˜å™¨åœ°å€ï¼Œæœ€é«˜ä½è‡ªåŠ¨ç½®1 */
     HAL_SPI_Transmit(&BMI088_SPI, (uint8_t[]){reg | 0x80}, 1, 10);
-    /* Á¬Ğø¶ÁÈ¡ len ¸ö×Ö½Ú */
+    /* æ‰¹é‡è¯»å– len ä¸ªå­—èŠ‚æ•°æ® */
     HAL_SPI_Receive(&BMI088_SPI, buf, len, 10);
 
     if (cs_pin == 0) BMI088_ACCEL_CS_H();
@@ -214,8 +214,8 @@ static void BMI088_ReadRegs(uint8_t reg, uint8_t *buf, uint8_t len, uint8_t cs_p
 }
 
 /**
- * @brief  ¶ÁÈ¡ÍÓÂİÒÇÎÂ¶È£¨µ¥Î»£º¡æ£©
- * @retval ÎÂ¶ÈÖµ£¨ÉãÊÏ¶È£©
+ * @brief è¯»å–èŠ¯ç‰‡å†…éƒ¨æ¸©åº¦ï¼Œå•ä½æ‘„æ°åº¦
+ * @retval æ¸©åº¦æµ®ç‚¹å€¼ï¼Œå•ä½â„ƒ
  */
 float BMI088_ReadTemperature(void)
 {
@@ -223,51 +223,51 @@ float BMI088_ReadTemperature(void)
     uint16_t temp_uint11;
     int16_t temp_int11;
 
-    // ¶ÁÈ¡ÎÂ¶È¼Ä´æÆ÷
-    BMI088_ReadRegs(BMI088_ACCEL_TEMP_L, buf, 2, 0);  // 0 = ¼ÓËÙ¶È¼ÆÆ¬Ñ¡
+    // è¯»å–æ¸©åº¦å¯„å­˜å™¨é«˜ä½å­—èŠ‚
+    BMI088_ReadRegs(BMI088_ACCEL_TEMP_L, buf, 2, 0);  // 0 = åŠ é€Ÿåº¦èŠ¯ç‰‡ç‰‡é€‰
 
-    // Æ´½Ó11Î»Ô­Ê¼Öµ
+    // æ‹¼æ¥11ä½æ— ç¬¦å·åŸå§‹æ¸©åº¦å€¼
     temp_uint11 = (buf[1] << 3) | (buf[0] >> 5);
 
-    // ²¹Âë×ªÓĞ·ûºÅÊı
+    // è½¬æ¢ä¸ºæœ‰ç¬¦å·11ä½æ•°å€¼ï¼ˆæ­£è´Ÿæ¸©åº¦å¤„ç†ï¼‰
     if (temp_uint11 > 1023) {
         temp_int11 = (int16_t)(temp_uint11 - 2048);
     } else {
         temp_int11 = (int16_t)temp_uint11;
     }
 
-    // »»Ëã³ÉÊµ¼ÊÎÂ¶È
+    // æ¢ç®—ä¸ºå®é™…æ‘„æ°åº¦æ¸©åº¦
     return (float)temp_int11 * 0.125f + 23.0f;
 }
 
 /**
- * @brief ÍÓÂİÒÇ¾²Ì¬Ğ£×¼£º¿ª»ú¾²Ö¹ 1 Ãë»ñÈ¡ÁãÆ«
+ * @brief é™€èºä»ªé™æ€æ ¡å‡†ï¼Œé‡‡é›†1000æ¬¡æ•°æ®è®¡ç®—Zè½´é›¶å
  */
 void BMI088_Calibrate_Gyro(void) {
     float sum = 0;
     float temp_gyro[3];
     for (int i = 0; i < 1000; i++) {
         BMI088_GyroRead(temp_gyro);
-        sum += temp_gyro[2]; // Ö»Ğ£×¼ Z Öá½ÇËÙ¶È
+        sum += temp_gyro[2]; // ä»…æ ¡å‡†Zè½´è§’é€Ÿåº¦é›¶å
         HAL_Delay(1);
     }
-    imu_data.gyro_offset[2] = sum / 1000.0f; // ¼ÇÂ¼ÁãÆ«
+    imu_data.gyro_offset[2] = sum / 1000.0f; // å­˜å‚¨å¹³å‡é›¶åå€¼
 }
 
 ///**
-// * @brief 1ms ÖÜÆÚµ÷ÓÃ¸üĞÂ£º»ı·Ö»ñÈ¡ Yaw
+// * @brief 1mså‘¨æœŸIMUæ›´æ–°å‡½æ•°ï¼Œä»…è§£ç®—Yawèˆªå‘è§’
 // */
 //void BMI088_Update(float dt) {
-
+//
 //    BMI088_AccelRead(imu_data.accel);
 //    BMI088_GyroRead(imu_data.gyro);
-
-//    // ¿Û³ıÁãÆ«²¢½øĞĞËÀÇøÂË²¨£¨·ÀÖ¹¾²Ö¹Ê±½Ç¶ÈÆ¯ÒÆ£©
+//
+//    // å‡å»Zè½´é›¶åï¼Œå¢åŠ æ­»åŒºè¿‡æ»¤å¾®å°æŠ–åŠ¨
 //    float gz = imu_data.gyro[2] - imu_data.gyro_offset[2];
 //    if (fabsf(gz) < 0.05f) gz = 0.0f;
-
-//    // Å·À­»ı·Ö£º½Ç¶È = ½Ç¶È + ½ÇËÙ¶È * Ê±¼ä
+//
+//    // ç§¯åˆ†æ±‚è§£èˆªå‘è§’ï¼šè§’åº¦ = åŸè§’åº¦ + è§’é€Ÿåº¦ * æ—¶é—´æ­¥é•¿
 //    imu_data.yaw_angle_deg += gz * dt;
-//    // ×ª»»Îª»¡¶È
+//    // è§’åº¦è½¬ä¸ºå¼§åº¦å­˜å‚¨
 //    imu_data.yaw_rad = imu_data.yaw_angle_deg * (3.14159265f / 180.0f);
 //}

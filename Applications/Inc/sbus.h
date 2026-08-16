@@ -13,8 +13,8 @@ extern "C" {
 #define MAX_SBUS_CHANNEL 16
 #define SBUS_FRAME_SIZE  25
 
-// ѭ�� DMA ���ջ����С��ҪԶ����һ����ѯ�����ڿ��ܵ�����ֽ�����
-// SBUS @100000/8E2 Լ 8333 �ֽ�/�룬10ms ��ѯ��������� ~83 �ֽڣ���ȡ 128 ����ԣ����
+// 循环 DMA 接收缓冲区大小需大于单次轮询间隔的最大接收字节数；
+// SBUS 波特率 100000 下每秒约 8333 字节，10ms 轮询间隔最多约 83 字节，因此取 128 字节留有充足余量。
 #define SBUS_DMA_BUF_SIZE 128
 #define SBUS_START_SYMBOL 0x0f
 
@@ -37,8 +37,8 @@ typedef enum {
     SBUS_DECODE_STATE_SBUS2_SYNC = 0x1FF,
     SBUS_DECODE_STATE_SBUS2_RX_VOLTAGE = 0x04,
     SBUS_DECODE_STATE_SBUS2_GPS = 0x14,
-    SBUS_DECODE_STATE_SBUS2_DATA1 = 0x24,
-    SBUS_DECODE_STATE_SBUS2_DATA2 = 0x34
+    SBUS_DECODE_STATE_SBUS2_DATA1 = 0x24,  // 预留拓展，当前版本未实现
+    SBUS_DECODE_STATE_SBUS2_DATA2 = 0x34   // 预留拓展，当前版本未实现
 } SBUS_DECODE_STATE;
 
 typedef struct {
@@ -51,19 +51,11 @@ typedef struct {
     uint32_t last_rx_time;
     uint32_t last_frame_time;
     bool sbus_data_ready;
-    uint8_t sbus_lock;
     SBUS_DECODE_STATE sbus_decode_state;
-    
-    void* sbus_rb;
-    
+   
     uint8_t sbus_frame[SBUS_FRAME_SIZE + (SBUS_FRAME_SIZE / 2)];
     uint16_t sbus_val[MAX_SBUS_CHANNEL]; //(1000~2000)
 } sbus_decoder_t;
-
-typedef struct{
-  uint32_t last_frame_time;
-  uint32_t ch_datas[10];
-} sbus_datas;
 
 typedef  struct
 {

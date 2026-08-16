@@ -1,9 +1,10 @@
 #include "math_calc.h"
 #include <math.h>
+
 /**
- * @brief  ����ת��Ϊ�Ƕ�
- * @param  rad ����ֵ
- * @retval deg �Ƕ�ֵ
+ * @brief Convert radians to degrees
+ * @param rad Radian value
+ * @retval deg Degree value
  * @attention
  */
 float rad2deg(float rad)
@@ -13,13 +14,13 @@ float rad2deg(float rad)
     return deg;
 }
 
-//�Ƕ�ת����
+// Convert degrees to radians
 float deg2rad(float angle_deg)
 {
     return angle_deg * (PI / 180.0f);
 }
 
-//�ǶȻ������ֵ
+// Convert degree angle to encoder tick value
 float Angle_To_Encoder(double theta)
 {
    if (theta < 0){theta += 360.0;}
@@ -29,7 +30,7 @@ float Angle_To_Encoder(double theta)
    return encoder;
 }
 
-//����ֵ����Ƕ�(������)
+// Convert encoder tick to radian angle
 float Encoder_To_Angle(float encoder)
 {
     float angle = 0.0;
@@ -38,11 +39,11 @@ float Encoder_To_Angle(float encoder)
 }
 
 /**
- * @brief  �����Ƕȼ��㣬����������Ҫת���ĽǶ�
- * @param  vx ÿ�����ӵ�x�����ٶ�
- * @param  vy ÿ�����ӵ�y�����ٶ�
- * @retval angle �Ƕ�ֵ��0��-360�㣩
- * @attention �˺����ǽ��Ƕȹ淶��-180��-180��
+ * @brief Calculate target angle from velocity components
+ * @param vx X component of velocity
+ * @param vy Y component of velocity
+ * @retval deg Angle value in range [0, 360)
+ * @attention atan2f native output range is [-180, 180]
  */
 float Angle_Calc(float vx, float vy)
 {
@@ -52,17 +53,17 @@ float Angle_Calc(float vx, float vy)
   {
         return 0.0f;
     }
-    /* ���ط�Χ [-180, 180] */
+    /* Raw output range [-180, 180] */
     float theta = atan2f(vy, vx);
-    float deg = rad2deg(theta);   
+    float deg = rad2deg(theta);
 
-    /* �� -180 ҕ�� +180 */
+    /* Map from -180 to +180 */
     if (deg <= -180.0f + EPS) deg = 180.0f;
 
     return deg;
 }
 
-/*�����ж�*/
+/* Sign function */
 float sign(float x)
 {
     if (x > 0) return 1.0f;
@@ -70,6 +71,12 @@ float sign(float x)
     return 0.0f;
 }
 
+/**
+ * @brief Compute angle difference, wrapped within [-180, 180]
+ * @param target Target angle(deg)
+ * @param current Current angle(deg)
+ * @return Shortest angle error
+ */
 float wrap_diff_deg(float target, float current)
 {
     float diff = target - current;
@@ -78,17 +85,16 @@ float wrap_diff_deg(float target, float current)
     return diff;
 }
 
-
-/* ���Ƕȹ淶�� [-180,180] */
+/* Normalize degree angle into range (-180, 180] */
  float normalize_deg(float deg)
 {
-    /* ��һ���� (-180, 180] */
+    /* Normalize to (-180, 180] */
     while (deg > 180.0f) deg -= 360.0f;
     while (deg <= -180.0f) deg += 360.0f;
     return deg;
 }
 
-/*�������ٶ�תΪ���ת��rpm*/
+/* Convert wheel linear speed to motor RPM */
  float linear_speed_to_motor_rpm(float wheel_linear_speed)
  {
      float wheel_rev_s = wheel_linear_speed / (2 * PI * 0.062f);
@@ -97,32 +103,45 @@ float wrap_diff_deg(float target, float current)
 
      return motor_rpm;
  }
- 
-// /*�������ٶ�תΪ���ticks/s*/
+
+// /* Convert linear speed to encoder ticks per second */
 // float linear_speed_to_encoder_ticks_per_s(float wheel_linear_speed_m_s)
 // {
 //    float motor_rev_s = (wheel_linear_speed_m_s / (2.0f* PI *0.062f))*19.0f;
 //    return motor_rev_s * (float)(1024*4);
 // }
-  
-///*���Ʋ���*/
+
+// /* Float value slew rate limit */
 // float approach_float(float current, float target, int32_t max_delta)
-//{   
-//    if (max_delta <= 0) return target; 
+//{
+//    if (max_delta <= 0) return target;
 //    float diff = target - current;
 //    if (diff > (float)max_delta)  return current + (float)max_delta;
 //    if (diff < -(float)max_delta) return current - (float)max_delta;
 //    return target;
 //}
+
+/**
+ * @brief Calculate shortest wrapped difference for 8192‑tick encoder
+ * @param target Target encoder tick
+ * @param current Current encoder tick
+ * @return wrapped difference
+ * @note Encoder range 0~8191
+ */
 static  int32_t encoder_wrap_diff(int32_t target, int32_t current)
 {
     int32_t diff = target - current;
-    if (diff > 4096)       diff -= 4096;
-    else if (diff < -8192) diff += 8192;
+    if (diff > 4096)       diff -= 8192;
+    else if (diff < -4096) diff += 8192;
     return diff;
 }
 
-// ��Ŀ�껻�ɡ��뵱ǰ������ĵȼ�Ŀ��
+/**
+ * @brief Compute unwrapped target position from current tick, use shortest path
+ * @param current Current encoder tick
+ * @param target Raw target encoder tick(0~8191)
+ * @return Unwrapped absolute target position
+ */
 int32_t encoder_wrap_target(int32_t current, int32_t target)
 {
     return current + encoder_wrap_diff(target, current);

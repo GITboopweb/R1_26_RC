@@ -2,10 +2,9 @@
 #include "main.h" 
 
 
-sbus_decoder_t      s_decoder;              // SBUS 解析器实例（原 main.c 的 my_sbus）
-static UART_HandleTypeDef* s_sbus_huart = NULL;    // 绑定的串口（本项目为 huart1）
+sbus_decoder_t      s_decoder;              // SBUS 解析器实例
+static UART_HandleTypeDef* s_sbus_huart = NULL;    // 绑定的串口
 uint8_t  s_sbus_dma_buf[SBUS_DMA_BUF_SIZE]; // DMA 循环接收缓冲
-sbus_datas datas;
 static volatile uint16_t s_sbus_rd_pos = 0;        // 已处理到的读指针（追 DMA 写指针）
 
 sbus_info_t channels = SBUS_Init;
@@ -214,7 +213,6 @@ void sbus_recv_poll(void)
     if (s_sbus_huart == NULL) {
         return;
     }
-//	HAL_UART_DMAStop(&huart3);
     
 		// DMA_GET_COUNTER 是“剩余未传输字节数”，用缓冲大小减去它即得当前写指针位置（含回绕）。
     uint16_t dma_pos = SBUS_DMA_BUF_SIZE - __HAL_DMA_GET_COUNTER(s_sbus_huart->hdmarx);
@@ -226,7 +224,6 @@ void sbus_recv_poll(void)
     }
     sbus_get_datas();
 		
-//  HAL_UART_Receive_DMA(&huart3, s_sbus_dma_buf, SBUS_DMA_BUF_SIZE);
 
 }
 

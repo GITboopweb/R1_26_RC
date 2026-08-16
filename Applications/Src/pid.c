@@ -127,19 +127,19 @@ float PID_calc(pid_type_def *pid, float ref, float set,float dt)
 
     else if(pid->mode==PID_VARY_D_ON_INCOM_D)
   {
-    //  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Î¹æ»®Î»ï¿½ï¿½
+    // ¸üĞÂÌİĞÎËÙ¶È¹æ»®Ä¿±êÎ»ÖÃ
     update_trapezoidal_planner(pid, set, dt, half_range, full_range);
 
-    // ï¿½ï¿½ï¿½æ»®Î»ï¿½ï¿½ï¿½ï¿½Îª PID ï¿½ï¿½ï¿½è¶¨ï¿½ï¿½
+    // ½«ÌİĞÎ¹æ»®Êä³öÎ»ÖÃ×÷ÎªPID¿ØÖÆÆ÷Éè¶¨Öµ
     pid->set = pid->planned_pos;
 
-    //  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+    // ¼ÆËãÎ´ÏŞ·ùµÄPIDÊä³ö
     float unsat_out = compute_pid_output(pid, ref, dt, half_range, full_range);
     pid->out = LIMIT(unsat_out, -pid->max_out, pid->max_out);
 
-    //  ï¿½ï¿½ï¿½æ·´ï¿½ï¿½ï¿½ï¿½Ê·
+    // ±£´æµ±Ç°·´À¡Öµ×÷ÎªÀúÊ··´À¡
     pid->prev_fdb = ref;
-
+    
   } 
   return pid->out;
 }

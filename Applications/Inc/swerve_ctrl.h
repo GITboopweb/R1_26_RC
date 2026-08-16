@@ -39,7 +39,7 @@ typedef struct
 extern SwerveModule swerve_modules[4];
 
 void Swerve_Init(void);
-void Swerve_Update(float vx, float vy, float omega);
+void Swerve_Update(float vx, float vy, float omega, float yaw_rad);
 void Swerve_Execute(float dt);
 void Chassis_Control(uint8_t mode,float vx_cmd, float vy_cmd, float omega_user, float dt);
 void Swerve_Stop(void);

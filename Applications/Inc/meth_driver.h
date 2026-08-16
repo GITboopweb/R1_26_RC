@@ -8,18 +8,18 @@
 #define POS_UP_Two    (-8192.0f * 580.0f) 
 #define POS_DOWN  (0.0f)
 
-// ¶¨ÒåÄãµÄÆø¶¯·§×´Ì¬
+// // ç”µç£é˜€çŠ¶æ€æšä¸¾å®šä¹‰
 typedef enum {
     VALVE_OFF = 0,
     VALVE_ON
 } Valve_State_e;
 
 void Servo_Init_All(void);
-void Servo_Set_Angle_Dual(float angle1, float angle2); // Í¬Ê±ÉèÖÃÁ½¸ö¶æ»ú
+void Servo_Set_Angle_Dual(float angle1, float angle2); // Í¬åˆå§‹åŒ–å…¨éƒ¨èˆµæœº
 
 
-void Pneumatic_Gripper_Ctrl(Valve_State_e state);   // ¼Ğ×¦Æø¸× 
-void Pneumatic_Suction_Ctrl(Valve_State_e state);   // ÎüÅÌÆøÂ· 
+void Pneumatic_Gripper_Ctrl(Valve_State_e state);   // /æ°”åŠ¨å¤¹çˆªæ§åˆ¶
+void Pneumatic_Suction_Ctrl(Valve_State_e state);   //  æ°”åŠ¨å¸ç›˜æ§åˆ¶
 
 void Host_Servo_Logic(float input_val);
 void Mech_Servo_Logic(float input_val, float roll_val);

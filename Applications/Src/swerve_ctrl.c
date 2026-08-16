@@ -96,13 +96,13 @@ static void Optimize_Module(SwerveModule* module, float input_vx, float input_vy
  * @param omega 机器人角速度
  * @param yaw_rad 底盘当前绝对偏航角 (弧度)
  */
-void Swerve_Update(float vx, float vy, float omega)
+void Swerve_Update(float vx, float vy, float omega, float yaw_rad)
 {
-//    // 加入二维旋转矩阵，将世界推杆速度转为底盘局部速度
-//    float local_vx = vx * cosf(yaw_rad) + vy * sinf(yaw_rad);
-//    float local_vy = -vx * sinf(yaw_rad) + vy * cosf(yaw_rad);
-    float local_vx = vx;
-    float local_vy = vy;
+   // 加入二维旋转矩阵，将世界推杆速度转为底盘局部速度
+    float local_vx = vx * cosf(yaw_rad) - vy * sinf(yaw_rad);
+    float local_vy = vx * sinf(yaw_rad) + vy * cosf(yaw_rad);
+   // float local_vx = vx;
+   //float local_vy = vy;
 
     // 计算理想目标值 (Kinematics)
     for (uint8_t i = 0; i < 4; i++)
@@ -168,7 +168,7 @@ void Chassis_Control(uint8_t mode,float vx_cmd, float vy_cmd, float omega_user, 
           g_data_ready = 0;
        }
     float omega_final = YawHold_Update(-x_recv,-y_recv,-w_recv,imu_data.yaw_angle_deg, imu_data.gyro_cal, dt);   
-    Swerve_Update(-x_recv, -y_recv,omega_final);
+    Swerve_Update(-x_recv, -y_recv,omega_final,imu_data.yaw_angle_deg);
 
 		}	
 		
@@ -177,7 +177,7 @@ void Chassis_Control(uint8_t mode,float vx_cmd, float vy_cmd, float omega_user, 
 				float omega_final = YawHold_Update(vx_cmd, vy_cmd, omega_user,imu_data.yaw_angle_deg, imu_data.gyro_cal, dt);
     
 				// 传入原有运动学解算
-				Swerve_Update(vx_cmd, vy_cmd, omega_final);
+				Swerve_Update(vx_cmd, vy_cmd, omega_final,imu_data.yaw_angle_deg);
 		}
 }
 

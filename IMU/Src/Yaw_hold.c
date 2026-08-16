@@ -14,7 +14,7 @@ float YawHold_Update(float vx_cmd, float vy_cmd, float omega_user,float yaw_now_
 {
     float trans_mag = hypotf(vx_cmd, vy_cmd);
 
-  // ï¿½Ö¶ï¿½ï¿½ï¿½ï¿½Ù¶È³ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ë³ï¿½ï¿½ï¿½ï¿½ò±£³ï¿½
+    // ÓÃ»§¸ø¶¨½ÇËÙ¶È³¬³öËÀÇø£¬¹Ø±Õº½Ïò±£³Ö¹¦ÄÜ¡¢Çå¿Õ»ý·ÖÏî
 	if (fabsf(omega_user) > YAW_HOLD_OMEGA_DEADBAND)
     {
         g_yaw_hold.active = 0;
@@ -22,28 +22,28 @@ float YawHold_Update(float vx_cmd, float vy_cmd, float omega_user,float yaw_now_
         return omega_user;
     }
 
-    // Æ½ï¿½ï¿½ï¿½Ù¶È³ï¿½ï¿½ï¿½ï¿½Æ¶ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê»×´Ì¬ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ò±£³ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Í·ï¿½ï¿½ï¿½ï¿½
+    // µ×ÅÌÓÐÆ½ÒÆËÙ¶È£¬½øÈëº½Ïò±£³ÖÂß¼­
     if (trans_mag > YAW_HOLD_MOVE_DEADBAND)
     {
         if (!g_yaw_hold.active)
         {
             g_yaw_hold.active = 1;
-            g_yaw_hold.target_yaw_deg = yaw_now_deg;   // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ç°ï¿½ï¿½ï¿½ï¿½ÎªÄ¿ï¿½ï¿½Ç¶ï¿½
+            g_yaw_hold.target_yaw_deg = yaw_now_deg;   // Ëø¶¨µ±Ç°º½ÏòÎªÄ¿±ê½Ç¶È
             g_yaw_hold.i_term = 0.0f;
         }
 
         float err = wrap_diff_deg(g_yaw_hold.target_yaw_deg, yaw_now_deg);
 
-        // PIDï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ã£ºï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ + ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ + ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Î¢ï¿½ï¿½ï¿½ï¿½
+        // º½Ïò±£³ÖPIDÔËËã£º±ÈÀýÏî + »ý·ÖÏî - Î¢·ÖÏî£¨ÍÓÂÝÒÇ½ÇËÙ¶È×öÎ¢·Ö·´À¡£©
         g_yaw_hold.i_term += YAW_HOLD_KI * err * dt;
         g_yaw_hold.i_term = LIMIT(g_yaw_hold.i_term, -YAW_HOLD_I_MAX, YAW_HOLD_I_MAX);
 
         float omega_hold = YAW_HOLD_KP * err + g_yaw_hold.i_term - YAW_HOLD_KD * gyro_z_dps;
         omega_hold = LIMIT(omega_hold, -YAW_HOLD_OMEGA_MAX, YAW_HOLD_OMEGA_MAX);
 
-        /* ï¿½ï¿½ï¿½Ù½ï¿½È¨ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ç¿ï¿½ï¿½ï¿½ï¿½Æ½ï¿½ï¿½ï¿½Ù¶ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ */
-        /* ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Õ¼ï¿½È¹ï¿½ï¿½ß£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½×ªï¿½ï¿½ï¿½ï¿½ï¿½Í»Ø£ï¿½ï¿½ï¿½ï¿½ï¿½Ì¶ï¿½ï¿½ï¿½ */
-        const float YAW_FULL_SCALE_SPEED = 1.8f;   /* ï¿½ïµ½ï¿½ï¿½ï¿½Ù¶È¼ï¿½ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½ï¿½ï¿½ï¿½ò±£³ï¿½ï¿½ï¿½È¨ï¿½ï¿½ï¿½ï¿½ï¿½ */
+        /* Æ½ÒÆËÙ¶È¼ÓÈ¨Ëõ·Å£ºµ×ÅÌÒÆ¶¯Ô½¿ì£¬º½Ïò±£³ÖÁ¦¶ÈÔ½Ç¿ */
+        /* ±ÜÃâ¸ßËÙÆ½ÒÆÊ±º½ÏòÐÞÕýÁ¦¶È²»×ã¡¢µÍËÙÊ±ÐÞÕý¶¶¶¯¹ý´ó */
+        const float YAW_FULL_SCALE_SPEED = 1.8f;   /* ´ïµ½¸ÃÆ½ÒÆËÙ¶ÈÊ±£¬º½Ïò±£³ÖÊä³öÂúÈ¨Öµ */
         float spd_scale = trans_mag / YAW_FULL_SCALE_SPEED;
         if (spd_scale > 1.0f) spd_scale = 1.0f;
         omega_hold *= spd_scale;
@@ -51,7 +51,7 @@ float YawHold_Update(float vx_cmd, float vy_cmd, float omega_user,float yaw_now_
         return omega_hold;
     }
 
-    // Æ½ï¿½ï¿½ï¿½Ù¶Èµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ãºï¿½ï¿½ò±£³ï¿½
+    // ÎÞÆ½ÒÆËÙ¶È£¬¹Ø±Õº½Ïò±£³Ö¡¢Çå¿Õ»ý·Ö£¬Ö±½Ó·µ»ØÁã½ÇËÙ¶È
     g_yaw_hold.active = 0;
     g_yaw_hold.i_term = 0.0f;
     return 0.0f;

@@ -153,42 +153,7 @@ void Mech_Suction_Logic(float input_val,float input_pn,float roll_val)
 }
 
 
-///* 抬升机构控制逻辑 */吗
-//void Mech_Lift_Logic(float input_val, float roll_val)
-//{
-//    static float lift_target_pos = POS_DOWN; 
-//    
-//    // 归一化输入并处理死区
-//    float stick_lift = apply_deadzone(2.0f*(input_val - 1000.0f)/1000.0f-1.0f, 0.1f);
-//    float stick_roll = apply_deadzone(2.0f*(roll_val - 1000.0f)/1000.0f-1.0f, 0.1f);
-
-////	  if (stick_roll<0.0f) {
-////        motor_lock = 1;
-////    }
-
-//    // 目标位置状态机切换
-//	if(stick_roll < 0.5f)
-//	{ if (stick_lift < -0.5f) {
-//        lift_target_pos = POS_DOWN;
-//    }
-//    else if (stick_lift > 0.5f) {
-//        lift_target_pos = POS_UP_One;
-//    }
-//	}
-//	else if (stick_roll>0.5f) {
-//        lift_target_pos = POS_UP_Two;
-//  }
-
-//    // 重力补偿
-//    int16_t gravity_comp = 200;
-
-//    int16_t out_motor5 = (int16_t)pid_call_2(lift_target_pos, 5, 0.003f) + gravity_comp;
-//    int16_t out_motor6 = (int16_t)pid_call_2(lift_target_pos, 6, 0.003f) + gravity_comp;
-
-//    can2_tx_table.target_current[4] = out_motor5;
-//    can2_tx_table.target_current[5] = out_motor6;
-//    can2_tx_table.update_flag = 1;
-//}
+/* 抬升机构控制逻辑 */
 
 //void Mech_Lift_SetTarget(float input_val, float roll_val)
 //{
@@ -270,7 +235,6 @@ void Mech_Lift_SetTarget(float input_val, float roll_val)
                 last_stick_active = 0;
             }
         }
-//				if (lift_target_pos < 0.0f) lift_target_pos = 0.0f;
-//        if (lift_target_pos > 7000.0f) lift_target_pos = 7000.0f;
+
     }
 }

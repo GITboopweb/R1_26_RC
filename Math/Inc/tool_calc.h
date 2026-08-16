@@ -2,11 +2,11 @@
 #ifndef __TOOL_CALC_H
 #define __TOOL_CALC_H
 
-/* --- ï¿½ê¶¨ï¿½å²¹ï¿½ï¿½ --- */
-#define RC_MAX_VALUE       660.0f  // Ò£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
-#define RC_DEADZONE_RATIO  0.07f   // 5% ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ (ï¿½ï¿½Ô¼ï¿½ï¿½Ó¦ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½33)
-#define RC_EXPO_RATIO      0.3f    // ï¿½ï¿½ï¿½ï¿½Ç¿ï¿½ï¿½ (0.0ï¿½ï¿½ï¿½ï¿½ï¿½Ô£ï¿½1.0ï¿½Ç´ï¿½ï¿½ï¿½ï¿½Î·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½0.2~0.4)
-#define RC_EXPO_RATIO_OMEGA   0.5f 
+/* --- Ò£¿ØÆ÷Í¨µÀ²ÎÊýºê¶¨Òå --- */
+#define RC_MAX_VALUE       660.0f  // Ò£¿ØÆ÷Ò¡¸Ë×î´óÊä³öÁ¿³Ì
+#define RC_DEADZONE_RATIO  0.07f   // 7% Ò¡¸ËËÀÇø±ÈÀý (¶ÔÓ¦Êµ¼ÊÊä³öãÐÖµÔ¼33)
+#define RC_EXPO_RATIO      0.3f    // Æ½ÒÆÍ¨µÀÇúÏßÖ¸Êý (0.0ÏßÐÔÊä³ö£¬1.0ÇúÏß×îÇ¿£¬¾ºÈü³£ÓÃ0.2~0.4)
+#define RC_EXPO_RATIO_OMEGA   0.5f // Ðý×ªÍ¨µÀÇúÏßÖ¸Êý
 
 #include "include.h"
 
@@ -14,20 +14,20 @@ typedef struct {
     float prev_filtered_norm_val; 
 } rc_channel_filter_state_t;
 
-// PIDï¿½ï¿½ï¿½Ã½á¹¹ï¿½ï¿½
+// PID¿ØÖÆÆ÷¸ß¼¶ÅäÖÃ²ÎÊý½á¹¹Ìå
 typedef struct
 {
-    // ï¿½ï¿½ï¿½Î¹æ»®ï¿½Õµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+    // Î»ÖÃµ½Î»Îó²î´°¿ÚãÐÖµ
     float arrival_window;
-    // ï¿½ï¿½Ä¦ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Öµ
+    // ¾²Ä¦²Á²¹³¥ËÀÇøãÐÖµ
     float static_friction_threshold;
-    // ï¿½ï¿½Ä¦ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Öµ
+    // ¾²Ä¦²Á²¹³¥Êä³öÖµ
     float static_friction_current;
-    // ï¿½É±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ïµï¿½ï¿½
+    // »ý·Ö¿¹±¥ºÍËõ·ÅÏµÊý
     float vint_scale_factor;
-    // ï¿½É±ï¿½ï¿½ï¿½ï¿½scaleï¿½ï¿½ï¿½ï¿½
+    // »ý·ÖËõ·ÅÏµÊýÉÏÏÞ
     float vint_max_scale;
-    // Dï¿½ï¿½ï¿½Í¨ï¿½Ë²ï¿½Ïµï¿½ï¿½
+    // Î¢·ÖÏîÒ»½×µÍÍ¨ÂË²¨ÏµÊý
     float d_filter_alpha;
 } PID_ConfigTypeDef;
 
@@ -42,8 +42,7 @@ typedef struct
 }
 extern PID_ConfigTypeDef pid_config;
 
-// ÎªÃ¿ï¿½ï¿½Í¨ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½ï¿½ï¿½Ì¬Êµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Çµï¿½×´Ì¬ï¿½á±»ï¿½ï¿½ï¿½ï¿½
-static rc_channel_filter_state_t rc_channel_states[3] = {0}; // ï¿½ï¿½ï¿½ï¿½ï¿½Ð¡ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Êµï¿½ï¿½ï¿½Ãµï¿½Í¨ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+static rc_channel_filter_state_t rc_channel_states[3] = {0}; 
 
 float apply_deadzone(float v, float dz);
 float apply_expo(float v, float expo);

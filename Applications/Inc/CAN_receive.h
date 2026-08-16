@@ -3,7 +3,7 @@
   * @file       can_receive.c/h
   * @brief      there is CAN interrupt function  to receive motor data,
   *             and CAN send function to send motor current to control motor.
-  *             ������CAN�жϽ��պ��������յ������,CAN���ͺ������͵���������Ƶ��.
+  *             ???CAN?????????????,CAN??????????????
   * @note       
   * @history
   *  Version    Date            Author          Modification
@@ -23,8 +23,9 @@
 #include "robot_def.h"
 #include "include.h"
 
-#define ENCODER_RESOLUTION 8192.0f // �������ֱ���
-#define ENCODER_OFFSET_COUNT 50 // У׼����
+
+#define ENCODER_RESOLUTION 8192.0f // ??????
+#define ENCODER_OFFSET_COUNT 50 // ????
 
 /* CAN send and receive ID */
 typedef enum
@@ -46,8 +47,8 @@ typedef enum
 } can_msg_id_e;
 
 typedef enum {
-    OFFSET_AUTO_ON_STARTUP = 0, // �ϵ��Զ�����
-    OFFSET_FIXED_VALUE,         // ʹ�ù̶��궨ֵ
+    OFFSET_AUTO_ON_STARTUP = 0, // ??????
+    OFFSET_FIXED_VALUE,         // ???????
 } offset_style_e;
 
 #define MOTOR_MAX_NUM 7
@@ -62,20 +63,20 @@ typedef struct
  uint8_t temperature;
  int16_t last_angle;
  int32_t total_angle;
- signed int round_cnt;
+ int32_t round_cnt;
  uint16_t offset_angle;
  uint32_t msg_cnt;
-  float current_angle_deg;  
+ float current_angle_deg;  
     
 } motor_measure_t;
 
-//���ʵ�����ýṹ��
+//?????????
 typedef struct {
-    CAN_HandleTypeDef *hcan;  // ���������� CAN ������ (hcan1 �� hcan2)
-    uint32_t rx_id;           // ���� ID (StdId)
-    motor_measure_t *data;    // ָ���������ݽṹ���ָ��
-    offset_style_e offset_style; // ������
-    uint16_t fixed_offset;       // �̶��Ļ�е���ֵ 
+    CAN_HandleTypeDef *hcan;  // ????? CAN ??? (hcan1 ? hcan2)
+    uint32_t rx_id;           // ?? ID (StdId)
+    motor_measure_t *data;    // ????????????
+    offset_style_e offset_style; // ????
+    uint16_t fixed_offset;       // ???????? 
 } motor_instance_t;
 
 
